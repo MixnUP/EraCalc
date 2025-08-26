@@ -4,7 +4,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, Check, Copy } from 'lucide-react';
 import { cn } from '../lib/utils';
 import {
   Select,
@@ -69,6 +69,10 @@ const CalculatorSection: React.FC = () => {
   const [currentItemQuantity, setCurrentItemQuantity] = useState<number | string>(1); // Quantity for item to be added
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]); // List of added items
 
+  // State for loading/feedback
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [justCopied, setJustCopied] = useState(false);
+
   // Save rate to localStorage whenever it changes
   useEffect(() => {
     // Only save if rate is a valid number, otherwise save empty string
@@ -103,7 +107,10 @@ const CalculatorSection: React.FC = () => {
 
   // Trigger conversion when relevant state changes
   useEffect(() => {
+    setIsCalculating(true);
     calculateConversion();
+    const timer = setTimeout(() => setIsCalculating(false), 300); // Duration for visual feedback
+    return () => clearTimeout(timer);
   }, [troAmount, rate, selectedSellaItemName, totalValueOfSella, conversionDirection]);
 
   const handleTroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,8 +153,10 @@ const CalculatorSection: React.FC = () => {
   };
 
   const handleCopyResult = () => {
+    if (justCopied) return;
     navigator.clipboard.writeText(result.toFixed(2)); // Copy with 2 decimal places
-    // Optionally, add a visual feedback for copied
+    setJustCopied(true);
+    setTimeout(() => setJustCopied(false), 2000);
   };
 
   // Group sella values by category
@@ -181,7 +190,7 @@ const CalculatorSection: React.FC = () => {
 
           {/* Swap Button */}
           <div className="flex justify-center">
-            <Button variant="outline" onClick={handleSwapDirection}>
+            <Button variant="outline" onClick={handleSwapDirection} className="active:scale-[0.98]">
               {conversionDirection === 'troToSellas' ? (
                 <>
                   Tro to Sellas <ArrowUpDown className="h-4 w-4" />
@@ -249,7 +258,7 @@ const CalculatorSection: React.FC = () => {
                     id="qty-input"
                     autoComplete="off" // Added to prevent browser autofill
                   />
-                  <Button onClick={handleAddItem}>Add</Button>
+                  <Button onClick={handleAddItem} className="active:scale-[0.98]">Add</Button>
                 </div>
               </div>
 
@@ -261,7 +270,7 @@ const CalculatorSection: React.FC = () => {
                     {selectedItems.map((item, index) => (
                       <li key={index} className="flex justify-between items-center bg-muted p-2 rounded-md">
                         <span>{item.name} x {item.quantity} ({item.value * item.quantity} $)</span>
-                        <Button variant="destructive" size="sm" onClick={() => handleRemoveItem(index)}>Remove</Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleRemoveItem(index)} className="active:scale-[0.98]">Remove</Button>
                       </li>
                     ))}
                   </ul>
@@ -273,14 +282,25 @@ const CalculatorSection: React.FC = () => {
           {/* Result Display */}
           <div>
             <Label>Result</Label>
-            <div className="bg-card p-4 rounded-md w-full text-foreground text-2xl font-bold border border-border text-center">
+            <div className={cn(
+              "bg-card p-4 rounded-md w-full text-foreground text-2xl font-bold border border-border text-center transition-colors duration-300",
+              isCalculating && "bg-muted/50"
+            )}>
               {result.toFixed(2)} {conversionDirection === 'troToSellas' ? selectedSellaItemName : 'Tro'}
             </div>
           </div>
 
           {/* Copy Result Button */}
-          <Button variant="secondary" className="w-full" onClick={handleCopyResult}>
-            Copy Result
+          <Button variant="secondary" className="w-full active:scale-[0.98]" onClick={handleCopyResult}>
+            {justCopied ? (
+              <>
+                <Check className="h-4 w-4" /> Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4" /> Copy Result
+              </>
+            )}
           </Button>
 
           {/* Ad Banner */}
