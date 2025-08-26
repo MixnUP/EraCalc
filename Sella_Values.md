@@ -6,6 +6,9 @@
 - Scallop = **5**
 - Starfish = **7**
 
+## 🦀 Crab Shells
+- All crab shells = **6**
+
 ## 🗑️ Trash
 - Paper = **4**
 - Newspaper = **4**

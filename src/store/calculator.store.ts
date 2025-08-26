@@ -6,6 +6,7 @@ const sellaValuesData = [
   { category: "Shells", name: "Sand Dollar", value: 5 },
   { category: "Shells", name: "Scallop", value: 5 },
   { category: "Shells", name: "Starfish", value: 7 },
+  { category: "Crab Shells", name: "All crab shells", value: 6 },
   { category: "Trash", name: "Paper", value: 4 },
   { category: "Trash", name: "Newspaper", value: 4 },
   { category: "Trash", name: "Bottles", value: 5 },
