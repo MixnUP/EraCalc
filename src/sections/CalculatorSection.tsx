@@ -59,8 +59,8 @@ const CalculatorSection: React.FC = () => {
   const [troAmount, setTroAmount] = useState<number | string>('');
   const [rate, setRate] = useState<string>(() => {
     const savedRate = localStorage.getItem('eraCalcRate');
-    // If savedRate is not in the generated range, default to the first value
-    return savedRate && rateValues.includes(savedRate) ? savedRate : rateValues[0];
+    // If savedRate is 0 or NaN, treat as empty string for placeholder
+    return savedRate && parseFloat(savedRate) !== 0 && !isNaN(parseFloat(savedRate)) ? savedRate : rateValues[0];
   });
   const [result, setResult] = useState<number>(0);
   const [conversionDirection, setConversionDirection] = useState<'troToSellas' | 'sellasToTro'>('troToSellas');
@@ -71,7 +71,9 @@ const CalculatorSection: React.FC = () => {
 
   // Save rate to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('eraCalcRate', rate.toString());
+    // Only save if rate is a valid number, otherwise save empty string
+    const rateToSave = parseFloat(rate as string);
+    localStorage.setItem('eraCalcRate', !isNaN(rateToSave) && rateToSave !== 0 ? rateToSave.toString() : '');
   }, [rate]);
 
   // Calculate total value of sella from selected items
@@ -272,7 +274,7 @@ const CalculatorSection: React.FC = () => {
           <div>
             <Label>Result</Label>
             <div className="bg-card p-4 rounded-md w-full text-foreground text-2xl font-bold border border-border text-center">
-              {result.toFixed(2)} {conversionDirection === 'troToSellas' ? 'Sellas' : 'Tro'}
+              {result.toFixed(2)} {conversionDirection === 'troToSellas' ? selectedSellaItemName : 'Tro'}
             </div>
           </div>
 
