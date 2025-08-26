@@ -25,7 +25,7 @@ export default function AboutPage() {
           <div className="mt-8">
             <h3 className="text-xl font-bold mb-2">Contact Us</h3>
             <p className="text-foreground">
-              For any questions or feedback, please reach out to us at [Your Contact Email].
+              For any questions or feedback, please reach out to us at; nyxon.dev@gmail.com
             </p>
           </div>
           <div className="flex justify-center gap-4 mt-8">
