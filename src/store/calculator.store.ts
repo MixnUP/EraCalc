@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ConversionDirection, SelectedItem } from '../types/calculator.type';
+import type { ConversionDirection, ISelectedItem } from '../types/calculator.type';
 
 const sellaValuesData = [
   { category: "Shells", name: "Aerolata", value: 3 },
@@ -41,7 +41,7 @@ interface CalculatorState {
   conversionDirection: ConversionDirection;
   selectedSellaItemName: string;
   currentItemQuantity: number | string;
-  selectedItems: SelectedItem[];
+  selectedItems: ISelectedItem[];
   isCalculating: boolean;
   justCopied: boolean;
   sellaValues: typeof sellaValuesData;

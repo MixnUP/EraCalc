@@ -1,4 +1,4 @@
-export interface SelectedItem {
+export interface ISelectedItem {
   name: string;
   value: number;
   quantity: number;
