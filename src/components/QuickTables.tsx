@@ -1,16 +1,20 @@
-import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-
-interface QuickTablesProps {
-  rate: number;
-  sellaValue: number;
-  onSelect: (amount: number) => void;
-}
+import { useCalculatorStore } from '../store/calculator.store';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 const commonTroAmounts = [500, 1000, 5000, 10000, 20000];
 
-const QuickTables: React.FC<QuickTablesProps> = ({ rate, sellaValue, onSelect }) => {
-  if (!rate || !sellaValue) {
+export default function QuickTables() {
+  const {
+    rate,
+    selectedSellaItemName,
+    sellaValues,
+    setTroAmount,
+  } = useCalculatorStore();
+
+  const sellaValue = sellaValues.find(item => item.name === selectedSellaItemName)?.value || 0;
+  const parsedRate = parseFloat(rate);
+
+  if (!parsedRate || !sellaValue) {
     return null;
   }
 
@@ -26,9 +30,9 @@ const QuickTables: React.FC<QuickTablesProps> = ({ rate, sellaValue, onSelect })
         </TableHeader>
         <TableBody>
           {commonTroAmounts.map((amount) => {
-            const sellaAmount = (amount * rate) / sellaValue;
+            const sellaAmount = (amount * parsedRate) / sellaValue;
             return (
-              <TableRow key={amount} onClick={() => onSelect(amount)} className="cursor-pointer">
+              <TableRow key={amount} onClick={() => setTroAmount(amount)} className="cursor-pointer">
                 <TableCell>{amount}</TableCell>
                 <TableCell>{sellaAmount.toFixed(2)}</TableCell>
               </TableRow>
@@ -38,6 +42,4 @@ const QuickTables: React.FC<QuickTablesProps> = ({ rate, sellaValue, onSelect })
       </Table>
     </div>
   );
-};
-
-export default QuickTables;
+}
