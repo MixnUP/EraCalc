@@ -10,11 +10,11 @@ import { cn } from '../lib/utils';
 const CalculatorSection: React.FC = () => {
   const [troAmount, setTroAmount] = useState<number | string>('');
   const [sellasAmount, setSellasAmount] = useState<number | string>('');
-  const [rate, setRate] = useState<number>(() => {
+  const [rate, setRate] = useState<number | string>(() => {
     const savedRate = localStorage.getItem('eraCalcRate');
     return savedRate ? parseFloat(savedRate) : 100; // Default rate
   });
-  const [valueOfSella, setValueOfSella] = useState<number>(() => {
+  const [valueOfSella, setValueOfSella] = useState<number | string>(() => {
     const savedValue = localStorage.getItem('eraCalcValueOfSella');
     return savedValue ? parseFloat(savedValue) : 1; // Default Value of Sella
   });
@@ -32,15 +32,18 @@ const CalculatorSection: React.FC = () => {
 
   const calculateConversion = () => {
     let calculatedResult = 0;
+    const currentRate = parseFloat(rate as string) || 100; // Fallback to 100 if empty or invalid
+    const currentValueOfSella = parseFloat(valueOfSella as string) || 1; // Fallback to 1 if empty or invalid
+
     if (conversionDirection === 'troToSellas') {
       const tro = parseFloat(troAmount as string);
       if (!isNaN(tro)) {
-        calculatedResult = (tro * rate) / valueOfSella;
+        calculatedResult = (tro * currentRate) / currentValueOfSella;
       }
     } else { // sellasToTro
       const sellas = parseFloat(sellasAmount as string);
       if (!isNaN(sellas)) {
-        calculatedResult = (sellas * valueOfSella) / rate;
+        calculatedResult = (sellas * currentValueOfSella) / currentRate;
       }
     }
     setResult(calculatedResult);
@@ -62,17 +65,11 @@ const CalculatorSection: React.FC = () => {
   };
 
   const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newRate = parseFloat(e.target.value);
-    if (!isNaN(newRate)) {
-      setRate(newRate);
-    }
+    setRate(e.target.value);
   };
 
   const handleValueOfSellaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value);
-    if (!isNaN(newValue)) {
-      setValueOfSella(newValue);
-    }
+    setValueOfSella(e.target.value);
   };
 
   const handleSwapDirection = () => {
@@ -106,7 +103,7 @@ const CalculatorSection: React.FC = () => {
             <Input
               type="number"
               id="tro-input"
-              placeholder="Enter Tro amount"
+              placeholder="0"
               value={troAmount}
               onChange={handleTroChange}
               disabled={conversionDirection === 'sellasToTro'}
@@ -137,7 +134,7 @@ const CalculatorSection: React.FC = () => {
             <Input
               type="number"
               id="sellas-input"
-              placeholder="Enter Sellas amount"
+              placeholder="0"
               value={sellasAmount}
               onChange={handleSellasChange}
               disabled={conversionDirection === 'troToSellas'}
@@ -150,7 +147,7 @@ const CalculatorSection: React.FC = () => {
             <Input
               type="number"
               id="rate-input"
-              placeholder="e.g., 100"
+              placeholder="0"
               value={rate}
               onChange={handleRateChange}
             />
@@ -162,7 +159,7 @@ const CalculatorSection: React.FC = () => {
             <Input
               type="number"
               id="value-sella-input"
-              placeholder="e.g., 1"
+              placeholder="0"
               value={valueOfSella}
               onChange={handleValueOfSellaChange}
             />
