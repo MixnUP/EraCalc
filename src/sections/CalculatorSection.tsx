@@ -39,45 +39,61 @@ const sellaValuesData = [
   { category: "Minerals", name: "Emerald", value: 8 },
 ];
 
+interface SelectedItem {
+  name: string;
+  value: number;
+  quantity: number;
+}
+
+const generateRateValues = () => {
+  const rates = [];
+  for (let i = 30; i <= 40; i++) {
+    rates.push((i / 10).toFixed(1));
+  }
+  return rates;
+};
+
+const rateValues = generateRateValues();
+
 const CalculatorSection: React.FC = () => {
   const [troAmount, setTroAmount] = useState<number | string>('');
-  const [sellasAmount, setSellasAmount] = useState<number | string>('');
-  const [rate, setRate] = useState<number | string>(() => {
+  const [rate, setRate] = useState<string>(() => {
     const savedRate = localStorage.getItem('eraCalcRate');
-    return savedRate ? parseFloat(savedRate) : 100; // Default rate
+    // If savedRate is not in the generated range, default to the first value
+    return savedRate && rateValues.includes(savedRate) ? savedRate : rateValues[0];
   });
-  const [valueOfSella, setValueOfSella] = useState<number>(sellaValuesData[0].value); // Default to first item's value
-  const [selectedSellaItem, setSelectedSellaItem] = useState<string>(sellaValuesData[0].name); // To display selected item name
-
   const [result, setResult] = useState<number>(0);
   const [conversionDirection, setConversionDirection] = useState<'troToSellas' | 'sellasToTro'>('troToSellas');
+
+  const [selectedSellaItemName, setSelectedSellaItemName] = useState<string>(sellaValuesData[0].name); // Name of item currently selected in dropdown
+  const [currentItemQuantity, setCurrentItemQuantity] = useState<number | string>(1); // Quantity for item to be added
+  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]); // List of added items
 
   // Save rate to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('eraCalcRate', rate.toString());
   }, [rate]);
 
-  // Update valueOfSella when selectedSellaItem changes
-  useEffect(() => {
-    const item = sellaValuesData.find(item => item.name === selectedSellaItem);
-    if (item) {
-      setValueOfSella(item.value);
-    }
-  }, [selectedSellaItem]);
+  // Calculate total value of sella from selected items
+  const totalValueOfSella = selectedItems.reduce((sum, item) => sum + (item.value * item.quantity), 0);
 
   const calculateConversion = () => {
     let calculatedResult = 0;
-    const currentRate = parseFloat(rate as string) || 100; // Fallback to 100 if empty or invalid
+    const currentRate = parseFloat(rate as string) || parseFloat(rateValues[0]); // Fallback to first rate if empty or invalid
 
     if (conversionDirection === 'troToSellas') {
       const tro = parseFloat(troAmount as string);
+      const selectedItem = sellaValuesData.find(item => item.name === selectedSellaItemName);
+      const valueOfSellaForTroToSellas = selectedItem ? selectedItem.value : 1; // Value of the selected Sella item
       if (!isNaN(tro)) {
-        calculatedResult = (tro * currentRate) / valueOfSella;
+        calculatedResult = (tro * currentRate) / valueOfSellaForTroToSellas;
       }
     } else { // sellasToTro
-      const sellas = parseFloat(sellasAmount as string);
-      if (!isNaN(sellas)) {
-        calculatedResult = (sellas * valueOfSella) / currentRate;
+      const sellas = totalValueOfSella; 
+      // For Sellas to Tro, Value of Sella in the formula is implicitly 1 (as Sellas is the base unit)
+      // The formula is: Tro = (Number of Sellas * 1) / Rate
+      if (sellas > 0) { // Only calculate if there are sellas from items
+        calculatedResult = sellas / currentRate;
       }
     }
     setResult(calculatedResult);
@@ -86,29 +102,44 @@ const CalculatorSection: React.FC = () => {
   // Trigger conversion when relevant state changes
   useEffect(() => {
     calculateConversion();
-  }, [troAmount, sellasAmount, rate, valueOfSella, conversionDirection]);
+  }, [troAmount, rate, selectedSellaItemName, totalValueOfSella, conversionDirection]);
 
   const handleTroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTroAmount(e.target.value);
-    setSellasAmount(''); // Clear other input when one is typed into
   };
 
-  const handleSellasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSellasAmount(e.target.value);
-    setTroAmount(''); // Clear other input when one is typed into
+  const handleRateChange = (value: string) => {
+    setRate(value);
   };
 
-  const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRate(e.target.value);
+  const handleAddItem = () => {
+    const selectedItemData = sellaValuesData.find(item => item.name === selectedSellaItemName);
+    const quantity = parseFloat(currentItemQuantity as string);
+
+    if (selectedItemData && !isNaN(quantity) && quantity > 0) {
+      setSelectedItems(prevItems => [
+        ...prevItems,
+        { name: selectedItemData.name, value: selectedItemData.value, quantity: quantity }
+      ]);
+      setCurrentItemQuantity(1); // Reset quantity after adding
+    }
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setSelectedItems(prevItems => prevItems.filter((_, i) => i !== index));
   };
 
   const handleSwapDirection = () => {
-    setConversionDirection(prev =>
-      prev === 'troToSellas' ? 'sellasToTro' : 'troToSellas'
-    );
+    setConversionDirection(prev => {
+      const newDirection = prev === 'troToSellas' ? 'sellasToTro' : 'troToSellas';
+      // Clear selected items if switching to troToSellas
+      if (newDirection === 'troToSellas') {
+        setSelectedItems([]);
+      }
+      return newDirection;
+    });
     // Clear inputs on swap to avoid confusion
     setTroAmount('');
-    setSellasAmount('');
     setResult(0);
   };
 
@@ -161,39 +192,28 @@ const CalculatorSection: React.FC = () => {
             </Button>
           </div>
 
-          {/* Sellas Input */}
-          <div className={cn(
-            "transition-all duration-500 ease-in-out overflow-hidden",
-            conversionDirection === 'troToSellas' ? "max-h-0 opacity-0 mb-0" : "max-h-24 opacity-100 mb-4"
-          )}>
-            <Label htmlFor="sellas-input">Sellas</Label>
-            <Input
-              type="number"
-              id="sellas-input"
-              placeholder="0"
-              value={sellasAmount}
-              onChange={handleSellasChange}
-              disabled={conversionDirection === 'troToSellas'}
-            />
+          {/* Conversion Rate Dropdown */}
+          <div>
+            <Label htmlFor="rate-select">Conversion Rate ($)</Label>
+            <Select onValueChange={handleRateChange} value={rate}>
+              <SelectTrigger id="rate-select">
+                <SelectValue placeholder="Select Rate" />
+              </SelectTrigger>
+              <SelectContent>
+                {rateValues.map((rateOption) => (
+                  <SelectItem key={rateOption} value={rateOption}>
+                    {rateOption}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Conversion Rate */}
+          {/* Value of Sella Dropdown (Always present) */}
           <div>
-            <Label htmlFor="rate-input">Conversion Rate (Sellas per Tro)</Label>
-            <Input
-              type="number"
-              id="rate-input"
-              placeholder="0"
-              value={rate}
-              onChange={handleRateChange}
-            />
-          </div>
-
-          {/* Value of Sella Dropdown */}
-          <div>
-            <Label htmlFor="sella-value-select">Value of Sella (Item)</Label>
-            <Select onValueChange={setSelectedSellaItem} defaultValue={selectedSellaItem}>
-              <SelectTrigger id="sella-value-select">
+            <Label htmlFor="sella-item-select">Value of Sella (Item)</Label>
+            <Select onValueChange={setSelectedSellaItemName} defaultValue={selectedSellaItemName}>
+              <SelectTrigger id="sella-item-select">
                 <SelectValue placeholder="Select a Sella Item" />
               </SelectTrigger>
               <SelectContent>
@@ -210,6 +230,43 @@ const CalculatorSection: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Conditional Add Sella Items and Selected Items List */}
+          {conversionDirection === 'sellasToTro' && (
+            <>
+              {/* Add Sella Items */}
+              <div>
+                <Label htmlFor="qty-input">Quantity</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Qty"
+                    className="w-20"
+                    value={currentItemQuantity}
+                    onChange={(e) => setCurrentItemQuantity(e.target.value)}
+                    id="qty-input"
+                    autoComplete="off" // Added to prevent browser autofill
+                  />
+                  <Button onClick={handleAddItem}>Add</Button>
+                </div>
+              </div>
+
+              {/* Selected Items List */}
+              {selectedItems.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-bold mb-2 text-foreground">Selected Items ({totalValueOfSella} $)</h3>
+                  <ul className="space-y-2">
+                    {selectedItems.map((item, index) => (
+                      <li key={index} className="flex justify-between items-center bg-muted p-2 rounded-md">
+                        <span>{item.name} x {item.quantity} ({item.value * item.quantity} $)</span>
+                        <Button variant="destructive" size="sm" onClick={() => handleRemoveItem(index)}>Remove</Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
 
           {/* Result Display */}
           <div>
