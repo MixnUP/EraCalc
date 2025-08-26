@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+import QuickTables from '../components/QuickTables';
 
 const sellaValuesData = [
   { category: "Shells", name: "Aerolata", value: 3 },
@@ -152,6 +153,10 @@ const CalculatorSection: React.FC = () => {
     setResult(0);
   };
 
+  const handleQuickSelect = (amount: number) => {
+    setTroAmount(amount);
+  };
+
   const handleCopyResult = () => {
     if (justCopied) return;
     navigator.clipboard.writeText(result.toFixed(2)); // Copy with 2 decimal places
@@ -205,7 +210,7 @@ const CalculatorSection: React.FC = () => {
 
           {/* Conversion Rate Dropdown */}
           <div>
-            <Label htmlFor="rate-select">Conversion Rate ($)</Label>
+            <Label htmlFor="rate-select">Tro-Sella Rate</Label>
             <Select onValueChange={handleRateChange} value={rate}>
               <SelectTrigger id="rate-select">
                 <SelectValue placeholder="Select Rate" />
@@ -305,6 +310,15 @@ const CalculatorSection: React.FC = () => {
 
           {/* Ad Banner */}
           <AdBanner />
+
+          {/* Quick Tables */}
+          {conversionDirection === 'troToSellas' && (
+            <QuickTables
+              rate={parseFloat(rate)}
+              sellaValue={sellaValuesData.find(item => item.name === selectedSellaItemName)?.value || 0}
+              onSelect={handleQuickSelect}
+            />
+          )}
         </CardContent>
       </Card>
     </section>
