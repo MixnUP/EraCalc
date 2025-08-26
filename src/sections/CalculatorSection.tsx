@@ -1,0 +1,192 @@
+import React, { useState, useEffect } from 'react';
+import AdBanner from '../components/AdBanner';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { ArrowUpDown } from 'lucide-react';
+import { cn } from '../lib/utils';
+
+const CalculatorSection: React.FC = () => {
+  const [troAmount, setTroAmount] = useState<number | string>('');
+  const [sellasAmount, setSellasAmount] = useState<number | string>('');
+  const [rate, setRate] = useState<number>(() => {
+    const savedRate = localStorage.getItem('eraCalcRate');
+    return savedRate ? parseFloat(savedRate) : 100; // Default rate
+  });
+  const [valueOfSella, setValueOfSella] = useState<number>(() => {
+    const savedValue = localStorage.getItem('eraCalcValueOfSella');
+    return savedValue ? parseFloat(savedValue) : 1; // Default Value of Sella
+  });
+  const [result, setResult] = useState<number>(0);
+  const [conversionDirection, setConversionDirection] = useState<'troToSellas' | 'sellasToTro'>('troToSellas');
+
+  // Save rate and valueOfSella to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('eraCalcRate', rate.toString());
+  }, [rate]);
+
+  useEffect(() => {
+    localStorage.setItem('eraCalcValueOfSella', valueOfSella.toString());
+  }, [valueOfSella]);
+
+  const calculateConversion = () => {
+    let calculatedResult = 0;
+    if (conversionDirection === 'troToSellas') {
+      const tro = parseFloat(troAmount as string);
+      if (!isNaN(tro)) {
+        calculatedResult = (tro * rate) / valueOfSella;
+      }
+    } else { // sellasToTro
+      const sellas = parseFloat(sellasAmount as string);
+      if (!isNaN(sellas)) {
+        calculatedResult = (sellas * valueOfSella) / rate;
+      }
+    }
+    setResult(calculatedResult);
+  };
+
+  // Trigger conversion when relevant state changes
+  useEffect(() => {
+    calculateConversion();
+  }, [troAmount, sellasAmount, rate, valueOfSella, conversionDirection]);
+
+  const handleTroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTroAmount(e.target.value);
+    setSellasAmount(''); // Clear other input when one is typed into
+  };
+
+  const handleSellasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSellasAmount(e.target.value);
+    setTroAmount(''); // Clear other input when one is typed into
+  };
+
+  const handleRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newRate = parseFloat(e.target.value);
+    if (!isNaN(newRate)) {
+      setRate(newRate);
+    }
+  };
+
+  const handleValueOfSellaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseFloat(e.target.value);
+    if (!isNaN(newValue)) {
+      setValueOfSella(newValue);
+    }
+  };
+
+  const handleSwapDirection = () => {
+    setConversionDirection(prev =>
+      prev === 'troToSellas' ? 'sellasToTro' : 'troToSellas'
+    );
+    // Clear inputs on swap to avoid confusion
+    setTroAmount('');
+    setSellasAmount('');
+    setResult(0);
+  };
+
+  const handleCopyResult = () => {
+    navigator.clipboard.writeText(result.toFixed(2)); // Copy with 2 decimal places
+    // Optionally, add a visual feedback for copied
+  };
+
+  return (
+    <section className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-center">EraCalc</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Tro Input */}
+          <div className={cn(
+            "transition-all duration-500 ease-in-out overflow-hidden",
+            conversionDirection === 'sellasToTro' ? "max-h-0 opacity-0 mb-0" : "max-h-24 opacity-100 mb-4"
+          )}>
+            <Label htmlFor="tro-input">Tro</Label>
+            <Input
+              type="number"
+              id="tro-input"
+              placeholder="Enter Tro amount"
+              value={troAmount}
+              onChange={handleTroChange}
+              disabled={conversionDirection === 'sellasToTro'}
+            />
+          </div>
+
+          {/* Swap Button */}
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={handleSwapDirection}>
+              {conversionDirection === 'troToSellas' ? (
+                <>
+                  Tro to Sellas <ArrowUpDown className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Sellas to Tro <ArrowUpDown className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Sellas Input */}
+          <div className={cn(
+            "transition-all duration-500 ease-in-out overflow-hidden",
+            conversionDirection === 'troToSellas' ? "max-h-0 opacity-0 mb-0" : "max-h-24 opacity-100 mb-4"
+          )}>
+            <Label htmlFor="sellas-input">Sellas</Label>
+            <Input
+              type="number"
+              id="sellas-input"
+              placeholder="Enter Sellas amount"
+              value={sellasAmount}
+              onChange={handleSellasChange}
+              disabled={conversionDirection === 'troToSellas'}
+            />
+          </div>
+
+          {/* Conversion Rate */}
+          <div>
+            <Label htmlFor="rate-input">Conversion Rate (Sellas per Tro)</Label>
+            <Input
+              type="number"
+              id="rate-input"
+              placeholder="e.g., 100"
+              value={rate}
+              onChange={handleRateChange}
+            />
+          </div>
+
+          {/* Value of Sella */}
+          <div>
+            <Label htmlFor="value-sella-input">Value of Sella</Label>
+            <Input
+              type="number"
+              id="value-sella-input"
+              placeholder="e.g., 1"
+              value={valueOfSella}
+              onChange={handleValueOfSellaChange}
+            />
+          </div>
+
+          {/* Result Display */}
+          <div>
+            <Label>Result</Label>
+            <div className="bg-card p-4 rounded-md w-full text-foreground text-2xl font-bold border border-border text-center">
+              {result.toFixed(2)} {conversionDirection === 'troToSellas' ? 'Sellas' : 'Tro'}
+            </div>
+          </div>
+
+          {/* Copy Result Button */}
+          <Button variant="secondary" className="w-full" onClick={handleCopyResult}>
+            Copy Result
+          </Button>
+
+          {/* Ad Banner */}
+          <AdBanner />
+        </CardContent>
+      </Card>
+    </section>
+  );
+};
+
+export default CalculatorSection;
