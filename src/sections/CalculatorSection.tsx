@@ -6,6 +6,38 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { ArrowUpDown } from 'lucide-react';
 import { cn } from '../lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel as SelectGroupLabel,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+
+const sellaValuesData = [
+  { category: "Shells", name: "Aerolata", value: 3 },
+  { category: "Shells", name: "Sand Dollar", value: 5 },
+  { category: "Shells", name: "Scallop", value: 5 },
+  { category: "Shells", name: "Starfish", value: 7 },
+  { category: "Trash", name: "Paper", value: 4 },
+  { category: "Trash", name: "Newspaper", value: 4 },
+  { category: "Trash", name: "Bottles", value: 5 },
+  { category: "Trash", name: "Tires", value: 6 },
+  { category: "Mushrooms", name: "All mushroom types", value: 5 },
+  { category: "Minerals", name: "Iron", value: 5 },
+  { category: "Minerals", name: "Copper", value: 5 },
+  { category: "Minerals", name: "Silver", value: 5 },
+  { category: "Minerals", name: "Lead", value: 5 },
+  { category: "Minerals", name: "Quarts", value: 5 },
+  { category: "Minerals", name: "Gypsum", value: 5 },
+  { category: "Minerals", name: "Diamond", value: 10 },
+  { category: "Minerals", name: "Gold", value: 10 },
+  { category: "Minerals", name: "Ruby", value: 7 },
+  { category: "Minerals", name: "Sapphire", value: 7 },
+  { category: "Minerals", name: "Emerald", value: 8 },
+];
 
 const CalculatorSection: React.FC = () => {
   const [troAmount, setTroAmount] = useState<number | string>('');
@@ -14,36 +46,38 @@ const CalculatorSection: React.FC = () => {
     const savedRate = localStorage.getItem('eraCalcRate');
     return savedRate ? parseFloat(savedRate) : 100; // Default rate
   });
-  const [valueOfSella, setValueOfSella] = useState<number | string>(() => {
-    const savedValue = localStorage.getItem('eraCalcValueOfSella');
-    return savedValue ? parseFloat(savedValue) : 1; // Default Value of Sella
-  });
+  const [valueOfSella, setValueOfSella] = useState<number>(sellaValuesData[0].value); // Default to first item's value
+  const [selectedSellaItem, setSelectedSellaItem] = useState<string>(sellaValuesData[0].name); // To display selected item name
+
   const [result, setResult] = useState<number>(0);
   const [conversionDirection, setConversionDirection] = useState<'troToSellas' | 'sellasToTro'>('troToSellas');
 
-  // Save rate and valueOfSella to localStorage whenever they change
+  // Save rate to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('eraCalcRate', rate.toString());
   }, [rate]);
 
+  // Update valueOfSella when selectedSellaItem changes
   useEffect(() => {
-    localStorage.setItem('eraCalcValueOfSella', valueOfSella.toString());
-  }, [valueOfSella]);
+    const item = sellaValuesData.find(item => item.name === selectedSellaItem);
+    if (item) {
+      setValueOfSella(item.value);
+    }
+  }, [selectedSellaItem]);
 
   const calculateConversion = () => {
     let calculatedResult = 0;
     const currentRate = parseFloat(rate as string) || 100; // Fallback to 100 if empty or invalid
-    const currentValueOfSella = parseFloat(valueOfSella as string) || 1; // Fallback to 1 if empty or invalid
 
     if (conversionDirection === 'troToSellas') {
       const tro = parseFloat(troAmount as string);
       if (!isNaN(tro)) {
-        calculatedResult = (tro * currentRate) / currentValueOfSella;
+        calculatedResult = (tro * currentRate) / valueOfSella;
       }
     } else { // sellasToTro
       const sellas = parseFloat(sellasAmount as string);
       if (!isNaN(sellas)) {
-        calculatedResult = (sellas * currentValueOfSella) / currentRate;
+        calculatedResult = (sellas * valueOfSella) / currentRate;
       }
     }
     setResult(calculatedResult);
@@ -68,10 +102,6 @@ const CalculatorSection: React.FC = () => {
     setRate(e.target.value);
   };
 
-  const handleValueOfSellaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValueOfSella(e.target.value);
-  };
-
   const handleSwapDirection = () => {
     setConversionDirection(prev =>
       prev === 'troToSellas' ? 'sellasToTro' : 'troToSellas'
@@ -86,6 +116,12 @@ const CalculatorSection: React.FC = () => {
     navigator.clipboard.writeText(result.toFixed(2)); // Copy with 2 decimal places
     // Optionally, add a visual feedback for copied
   };
+
+  // Group sella values by category
+  const groupedSellaValues = sellaValuesData.reduce((acc, item) => {
+    (acc[item.category] = acc[item.category] || []).push(item);
+    return acc;
+  }, {} as Record<string, typeof sellaValuesData>);
 
   return (
     <section className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -153,16 +189,26 @@ const CalculatorSection: React.FC = () => {
             />
           </div>
 
-          {/* Value of Sella */}
+          {/* Value of Sella Dropdown */}
           <div>
-            <Label htmlFor="value-sella-input">Value of Sella</Label>
-            <Input
-              type="number"
-              id="value-sella-input"
-              placeholder="0"
-              value={valueOfSella}
-              onChange={handleValueOfSellaChange}
-            />
+            <Label htmlFor="sella-value-select">Value of Sella (Item)</Label>
+            <Select onValueChange={setSelectedSellaItem} defaultValue={selectedSellaItem}>
+              <SelectTrigger id="sella-value-select">
+                <SelectValue placeholder="Select a Sella Item" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(groupedSellaValues).map(([category, items]) => (
+                  <SelectGroup key={category}>
+                    <SelectGroupLabel>{category}</SelectGroupLabel>
+                    {items.map(item => (
+                      <SelectItem key={item.name} value={item.name}>
+                        {item.name} ({item.value})
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Result Display */}
