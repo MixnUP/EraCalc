@@ -1,7 +1,6 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 
-const AboutPage: React.FC = () => {
+export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md text-center">
@@ -24,5 +23,3 @@ const AboutPage: React.FC = () => {
     </div>
   );
 };
-
-export default AboutPage;

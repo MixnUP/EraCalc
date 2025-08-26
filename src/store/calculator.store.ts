@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ConversionDirection, SelectedItem } from '../types/calculator.type';
+import type { ConversionDirection, SelectedItem } from '../types/calculator.type';
 
 const sellaValuesData = [
   { category: "Shells", name: "Aerolata", value: 3 },

@@ -1,8 +1,7 @@
-import React from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 
-const NotFoundPage: React.FC = () => {
+export default function NotFoundPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-md text-center">
@@ -23,5 +22,3 @@ const NotFoundPage: React.FC = () => {
     </div>
   );
 };
-
-export default NotFoundPage;

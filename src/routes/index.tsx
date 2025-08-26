@@ -1,10 +1,9 @@
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LandingPage from '../pages/LandingPage';
 import AboutPage from '../pages/AboutPage';
 import NotFoundPage from '../pages/NotFoundPage';
 
-const AppRoutes: React.FC = () => {
+export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
@@ -13,5 +12,3 @@ const AppRoutes: React.FC = () => {
     </Routes>
   );
 };
-
-export default AppRoutes;

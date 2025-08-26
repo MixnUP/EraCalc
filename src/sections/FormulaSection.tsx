@@ -1,7 +1,6 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 
-const FormulaSection: React.FC = () => {
+export default function FormulaSection() {
   return (
     <section className="bg-muted/40 py-20">
       <div className="container mx-auto px-4">
@@ -34,5 +33,3 @@ const FormulaSection: React.FC = () => {
     </section>
   );
 };
-
-export default FormulaSection;

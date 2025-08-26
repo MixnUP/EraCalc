@@ -1,10 +1,9 @@
-import React from 'react';
 import HeroSection from '../sections/HeroSection';
 import CalculatorSection from '../sections/CalculatorSection';
 import InfoSection from '../sections/InfoSection';
 import FormulaSection from '../sections/FormulaSection';
 
-const LandingPage: React.FC = () => {
+export default function LandingPage() {
   return (
     <div>
       <HeroSection />
@@ -14,5 +13,3 @@ const LandingPage: React.FC = () => {
     </div>
   );
 };
-
-export default LandingPage;

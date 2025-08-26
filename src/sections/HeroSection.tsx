@@ -1,6 +1,4 @@
-import React from 'react';
-
-const HeroSection: React.FC = () => {
+export default function HeroSection() {
   return (
     <section className="bg-primary text-primary-foreground py-20 text-center">
       <div className="container mx-auto px-4">
@@ -11,5 +9,3 @@ const HeroSection: React.FC = () => {
     </section>
   );
 };
-
-export default HeroSection;

@@ -1,6 +1,4 @@
-import React from 'react';
-
-const InfoSection: React.FC = () => {
+export default function InfoSection() {
   return (
     <section className="bg-background text-foreground py-20">
       <div className="container mx-auto px-4 text-center">
@@ -12,5 +10,3 @@ const InfoSection: React.FC = () => {
     </section>
   );
 };
-
-export default InfoSection;
