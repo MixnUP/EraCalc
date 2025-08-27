@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import AdBanner from '../components/AdBanner';
+// import AdBanner from '../components/AdBanner';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -174,7 +174,7 @@ export default function CalculatorSection() {
               "bg-card p-4 rounded-md w-full text-foreground text-2xl font-bold border border-border text-center transition-colors duration-300",
               isCalculating && "bg-muted/50"
             )}>
-              {result.toFixed(2)} {conversionDirection === 'troToSellas' ? selectedSellaItemName : 'Tro'}
+              {result.toFixed(0)} {conversionDirection === 'troToSellas' ? selectedSellaItemName : 'Tro'}
             </div>
           </div>
 
@@ -191,8 +191,8 @@ export default function CalculatorSection() {
             )}
           </Button>
 
-          {/* Ad Banner */}
-          <AdBanner />
+          {/* Ad Banner (temporarily removed) */}
+          {/* <AdBanner /> */}
 
           {/* Quick Tables */}
           {conversionDirection === 'troToSellas' && (
