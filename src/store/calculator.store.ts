@@ -47,6 +47,8 @@ interface CalculatorState {
   justCopied: boolean;
   sellaValues: typeof sellaValuesData;
   rateValues: string[];
+  calculatorMode: 'simple' | 'advanced';
+  history: string[];
   setTroAmount: (amount: number | string) => void;
   setRate: (rate: string) => void;
   setConversionDirection: (direction: ConversionDirection) => void;
@@ -57,6 +59,12 @@ interface CalculatorState {
   calculateConversion: () => void;
   copyResult: () => void;
   swapConversionDirection: () => void;
+  setCalculatorMode: (mode: 'simple' | 'advanced') => void;
+  addToHistory: (entry: string) => void;
+  addSellaItem: (item: ISelectedItem) => void;
+  removeSellaItem: (index: number) => void;
+  clearSellaItems: () => void;
+  updateSellaItemQuantity: (index: number, quantity: number) => void;
 }
 
 export const useCalculatorStore = create<CalculatorState>((set, get) => ({
@@ -77,6 +85,8 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
   justCopied: false,
   sellaValues: sellaValuesData,
   rateValues: rateValues,
+  calculatorMode: 'simple',
+  history: [],
 
   setTroAmount: (amount) => set({ troAmount: amount }),
   setRate: (rate) => {
@@ -152,5 +162,42 @@ export const useCalculatorStore = create<CalculatorState>((set, get) => ({
       set({ selectedItems: [] });
     }
     set({ conversionDirection: newDirection, troAmount: '', result: 0 });
+  },
+
+  setCalculatorMode: (mode) => {
+    const { rateValues } = get();
+    if (mode === 'advanced') {
+      set({ calculatorMode: mode, rate: '3.0' });
+    } else {
+      set({ calculatorMode: mode, rate: rateValues[0] });
+    }
+  },
+
+  addToHistory: (entry) => {
+    set(state => ({
+      history: [entry, ...state.history].slice(0, 10) // Keep last 10 entries
+    }));
+  },
+
+  addSellaItem: (item) => {
+    set(state => ({
+      selectedItems: [...state.selectedItems, item]
+    }));
+  },
+
+  removeSellaItem: (index) => {
+    set(state => ({
+      selectedItems: state.selectedItems.filter((_, i) => i !== index)
+    }));
+  },
+
+  clearSellaItems: () => {
+    set({ selectedItems: [] });
+  },
+
+  updateSellaItemQuantity: (index, quantity) => {
+    set(state => ({
+      selectedItems: state.selectedItems.map((item, i) => i === index ? { ...item, quantity } : item)
+    }));
   },
 }));
