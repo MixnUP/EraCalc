@@ -3,10 +3,32 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 import { Check, Copy, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useCalculatorStore } from '../store/calculator.store';
 import type { ISelectedItem } from '../types/calculator.type';
+
+const imageModules = import.meta.glob('../assets/*.png', { eager: true });
+
+const itemImages: { [key: string]: string } = {};
+for (const path in imageModules) {
+  const fileNameWithExtension = path.split('/').pop();
+  if (fileNameWithExtension) {
+    const fileName = fileNameWithExtension.split('.')[0];
+    itemImages[fileName] = (imageModules[path] as { default: string }).default;
+  }
+}
+
+const formatItemNameToFileName = (itemName: string) => {
+  return itemName.toLowerCase().replace(/ /g, '_');
+};
 
 export default function SimpleCalculator({ toggleButton }: { toggleButton: React.ReactNode }) {
   const { sellaValues, rateValues } = useCalculatorStore();
@@ -16,7 +38,7 @@ export default function SimpleCalculator({ toggleButton }: { toggleButton: React
   const [result, setResult] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
   const [justCopied, setJustCopied] = useState(false);
-  const [rate] = useState(rateValues[0]);
+  const [rate, setRate] = useState(rateValues[0]);
 
   const calculateConversion = () => {
     let calculatedResult = 0;
@@ -91,6 +113,24 @@ export default function SimpleCalculator({ toggleButton }: { toggleButton: React
                 ))}
               </div>
             </div>
+
+            {/* Conversion Rate Dropdown */}
+            <div>
+              <Label htmlFor="rate-select">Tro-Sella Rate</Label>
+              <Select onValueChange={setRate} value={rate}>
+                <SelectTrigger id="rate-select">
+                  <SelectValue placeholder="Select Rate" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rateValues.map((rateOption) => (
+                    <SelectItem key={rateOption} value={rateOption}>
+                      {rateOption}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {selectedCategory && (
               <div className="space-y-2">
                 <Label>Item</Label>
@@ -100,12 +140,11 @@ export default function SimpleCalculator({ toggleButton }: { toggleButton: React
                       key={item.name}
                       variant={'outline'}
                       onClick={() => handleAddItem(item)}
-                      className="h-auto py-2"
+                      className="h-auto py-2 flex flex-col items-center justify-center"
                     >
-                      <div className="flex flex-col items-center">
-                        <span>{item.name}</span>
-                        <span className="text-xs text-muted-foreground">{item.value}</span>
-                      </div>
+                      <img src={itemImages[formatItemNameToFileName(item.name)]} alt={item.name} className="h-8 w-8 mb-1" />
+                      <span>{item.name}</span>
+                      <span className="text-xs text-muted-foreground">{item.value}</span>
                     </Button>
                   ))}
                 </div>
@@ -122,13 +161,12 @@ export default function SimpleCalculator({ toggleButton }: { toggleButton: React
                     <li key={index} className="flex justify-between items-center bg-muted p-2 rounded-md">
                       <span>{item.name}</span>
                       <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateSellaItemQuantity(index, parseInt(e.target.value))}
-                          className="w-20 h-8"
-                        />
-                        <Button variant="ghost" size="icon" onClick={() => removeSellaItem(index)}>
+                                                  <Input
+                                                    type="number"
+                                                    value={item.quantity}
+                                                    onChange={(e) => updateSellaItemQuantity(index, parseInt(e.target.value))}
+                                                    className="w-20 h-8 bg-white"
+                                                  />                        <Button variant="ghost" size="icon" onClick={() => removeSellaItem(index)}>
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
