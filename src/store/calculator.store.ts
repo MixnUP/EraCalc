@@ -27,7 +27,7 @@ const sellaValuesData = [
 
 const generateRateValues = () => {
   const rates = [];
-  for (let i = 30; i <= 40; i++) {
+  for (let i = 40; i <= 80; i++) {
     rates.push((i / 10).toFixed(1));
   }
   return rates;
